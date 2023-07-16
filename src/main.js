@@ -1,15 +1,16 @@
 import { configureBackend } from "./features/backend/backend.js";
 import { configureEnv } from "./features/env/env.js";
+import { LocalStore } from "./features/store/store.js";
 
 const env = configureEnv(self);
 const query = configureBackend(env);
+const store = new LocalStore();
 
 console.log("env", env);
 
 window.addEventListener("DOMContentLoaded", () => {
 
-    let dirHistory = localStorage.getItem("dirHistory") ?? "[]";
-    dirHistory = JSON.parse(dirHistory);
+    const dirHistory = store.getItem("dirHistory", []);
 
     const ctrl = new AbortController();
 
@@ -66,7 +67,7 @@ window.addEventListener("DOMContentLoaded", () => {
             directory: true,
         });
         dirHistory.push(dir);
-        localStorage.setItem("dirHistory", JSON.stringify(dirHistory));
+        store.setItem("dirHistory", dirHistory);
 
         select.innerHTML = (["-"].concat(dirHistory))
             .sort()
