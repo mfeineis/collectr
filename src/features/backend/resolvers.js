@@ -5,8 +5,7 @@ export function configureResolvers({ invoke }) {
         artists: async ({ dir }) => {
             console.log("Query.artists", { dir });
             try {
-                const artists = await invoke("find_artists", { dir });
-                return artists;
+                return await invoke("find_artists", { dir });
             } catch (e) {
                 console.error(e);
                 return [];

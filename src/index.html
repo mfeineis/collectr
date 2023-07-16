@@ -7,55 +7,30 @@
     <title>Tauri App</title>
     <script type="module" src="/main.js" defer></script>
     <style>
-      .logo.vanilla:hover {
-        filter: drop-shadow(0 0 2em #ffe21c);
-      }
       .env-other .env-warning {
         display: block !important;
       }
     </style>
   </head>
-
   <body>
-    <div class="env-warning" style="background: #ffe21c; display: none; padding: 1em; position: absolute; width: 100%">
+    <div class="env-warning" style="background: #ffe21c; display: none; padding: 1em; position: absolute; top: 0; width: 100%">
       Warning: running outside of Tauri environment!
     </div>
-    <div class="container">
-      <h1>Welcome to Tauri!</h1>
 
-      <form>
-        <select id="select-dir-history"></select>
-        <button id="btn-open-dir">Browse...</button>
-
-        <select class="block" id="artists" size="10"></select>
-      </form>
-
-      <div class="row">
-        <a href="https://tauri.app" target="_blank">
-          <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a
-          href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
-          target="_blank"
-        >
-          <img
-            src="/assets/javascript.svg"
-            class="logo vanilla"
-            alt="JavaScript logo"
-          />
-        </a>
-      </div>
-
-      <p>Click on the Tauri logo to learn more about the framework</p>
-
-      <div class="row">
-        <div>
-          <input id="greet-input" placeholder="Enter a name..." />
-          <button id="greet-button" type="button">Greet</button>
+    <center-l>
+      <form style="margin-top: 100px;">
+        <div class="w-80 flex flex-row mb-2">
+          <select id="select-dir-history" class="grow"></select>
+          <button id="btn-open-dir" class="ml-2">Browse...</button>
         </div>
-      </div>
 
-      <p id="greet-msg"></p>
-    </div>
+        <div class="flex flex-row">
+          <select id="artists" class="block w-80" size="10"></select>
+          <select id="albums" class="block w-80 ml-2" size="10"></select>
+          <select id="songs" class="block w-80 ml-2" size="10"></select>
+        </div>
+      </form>
+    </center-l>
+
   </body>
 </html>
