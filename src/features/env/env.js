@@ -1,3 +1,5 @@
+export class Env {}
+
 /** @param {Window} window */
 export function configureEnv(window) {
     if (window.__TAURI__) {

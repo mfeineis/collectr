@@ -1,7 +1,9 @@
-import { buildSchema, execute, parse, validate, validateSchema } from "../../deps/graphql/graphql-16.7.1.development.js";
+import { buildSchema, execute, parse, validate, validateSchema } from "graphql";
 
 import { schema as appSchemaDef } from "./schema.js";
 import { configureResolvers } from "./resolvers.js";
+
+export class Backend {}
 
 export function configureBackend(
     env,

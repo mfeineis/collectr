@@ -1,0 +1,105 @@
+<template>
+    <style>
+        @import "/styles.css";
+    </style>
+    <center-l>
+      <form style="margin-top: 100px;" onsubmit.bind="submit()">
+        <div class="w-80 flex flex-row mb-2">
+          <select class="grow" onchange.bind="dirChanged(event)">
+            <option value="">-</option>
+            <option repeat.for="dir of dirHistory" value.bind="dir">${dir}</option>
+          </select>
+          <button class="ml-2" onclick.bind.prevent="selectDir(event)">Browse...</button>
+        </div>
+
+        <div class="flex flex-row">
+          <select class="block w-80" size="10" onchange.bind="artistChanged(event)">
+            <option repeat.for="artist of artists" value.bind="artist.id">${artist.name}</option>
+          </select>
+          <select id="albums" class="block w-80 ml-2" size="10"></select>
+          <select id="songs" class="block w-80 ml-2" size="10"></select>
+        </div>
+      </form>
+    </center-l>
+
+    <script type="module">
+
+        class Component {
+            static requires = ({ Env, Backend, Store }) => [Env, Backend, Store];
+            constructor(env, backend, store) {
+                // console.log("<cr-browser>.constructor(", env, backend, store, ")");
+                this._env = env;
+                this._query = backend;
+                this._store = store;
+
+                this.init();
+            }
+
+            dirHistory = [];
+            artists = [];
+
+            async init() {
+                const queryResult = await this._query({
+                    source: "{ hello }",
+                });
+                const mutationResult = await this._query({
+                    source: `#graphql
+                        mutation($name: String!) {
+                            rememberMyName(name: $name)
+                        }
+                    `,
+                    variableValues: {
+                        name: "Professor X",
+                    },
+                })
+                console.log(queryResult, mutationResult);
+
+                this.dirHistory.splice(0, this.dirHistory.length, ...this._store.getItem("dirHistory", []));
+            }
+
+            async dirChanged(ev) {
+                const value = ev.target.value;
+                const { data } = await this._query({
+                    source: `#graphql
+
+                        query ($dir: String!) {
+                            artists(dir: $dir) {
+                                id
+                                name
+                                albums {
+                                    id
+                                    name
+                                    path
+                                    year
+                                }
+                            }
+                        }
+
+                    `,
+                    variableValues: {
+                        dir: value,
+                    },
+                });
+                console.log("artists", data);
+                this.artists.splice(0, this.artists.length, ...data.artists);
+            }
+
+            artistChanged(ev) {
+                console.log("artistList.onchange", ev.target.value, ev.target, ev.currentTarget, ev);
+            }
+
+            async selectDir(ev) {
+                const dir = await this._env.dialog.open({
+                    directory: true,
+                });
+                this.dirHistory.push(dir);
+                this._store.setItem("dirHistory", this.dirHistory);
+            }
+
+            submit(...args) {
+                console.log("submit(", ...args, ")");
+            }
+        }
+
+    </script>
+</template>

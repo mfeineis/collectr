@@ -5,7 +5,41 @@
     <link rel="stylesheet" href="styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tauri App</title>
-    <script type="module" src="/main.js" defer></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "graphql": "./deps/graphql/graphql-16.7.1.development.js",
+          "weave": "./deps/weavejs/weave-0.1.0.js"
+        }
+      }
+    </script>
+    <script type="module">
+
+      import { config as configureWeave } from "weave";
+
+      import { Backend, configureBackend } from "./features/backend/backend.js";
+      import { Env, configureEnv } from "./features/env/env.js";
+      import { Store, LocalStore } from "./features/store/store.js";
+
+      configureWeave({
+        urlFromElementName(tagName, _baseUrl, _rev) {
+          const path = tagName.replace(/-/g, "/");
+          return `/cdn/${path}.html`;
+        },
+        shouldHandleElement(tagName) {
+          return /^cr-/.test(tagName);
+        },
+        compositionRoot({ singleton }) {
+          const env = configureEnv(self);
+          console.log("env", env);
+
+          singleton(Env, () => env);
+          singleton(Store, () => new LocalStore());
+          singleton(Backend, () => configureBackend(env));
+        }
+      });
+
+    </script>
     <style>
       .env-other .env-warning {
         display: block !important;
@@ -17,20 +51,7 @@
       Warning: running outside of Tauri environment!
     </div>
 
-    <center-l>
-      <form style="margin-top: 100px;">
-        <div class="w-80 flex flex-row mb-2">
-          <select id="select-dir-history" class="grow"></select>
-          <button id="btn-open-dir" class="ml-2">Browse...</button>
-        </div>
-
-        <div class="flex flex-row">
-          <select id="artists" class="block w-80" size="10"></select>
-          <select id="albums" class="block w-80 ml-2" size="10"></select>
-          <select id="songs" class="block w-80 ml-2" size="10"></select>
-        </div>
-      </form>
-    </center-l>
+    <cr-browser></cr-browser>
 
   </body>
 </html>
