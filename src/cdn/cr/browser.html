@@ -16,8 +16,12 @@
           <select class="block w-80" size="10" onchange.bind="artistChanged(event)">
             <option repeat.for="artist of artists" value.bind="artist.id">${artist.name}</option>
           </select>
-          <select id="albums" class="block w-80 ml-2" size="10"></select>
-          <select id="songs" class="block w-80 ml-2" size="10"></select>
+          <select class="block w-80 ml-2" size="10" onchange.bind="albumChanged(event)">
+            <option repeat.for="album of albums" value.bind="album.id">${album.year} - ${album.name}</option>
+          </select>
+          <select id="songs" class="block w-80 ml-2" size="10" onchange.bind="songChanged(event)">
+            <option repeat.for="song of songs" value.bind="song.id" attr.bind.title="song.path">${song.track} ${song.name} (${song.ext})</option>
+          </select>
         </div>
       </form>
     </center-l>
@@ -35,8 +39,11 @@
                 this.init();
             }
 
+            dir = "";
             dirHistory = [];
             artists = [];
+            albums = [];
+            songs = [];
 
             async init() {
                 const queryResult = await this._query({
@@ -71,6 +78,13 @@
                                     name
                                     path
                                     year
+                                    songs {
+                                        id
+                                        name
+                                        track
+                                        path
+                                        ext
+                                    }
                                 }
                             }
                         }
@@ -81,11 +95,34 @@
                     },
                 });
                 console.log("artists", data);
+                this.dir = value;
                 this.artists.splice(0, this.artists.length, ...data.artists);
             }
 
             artistChanged(ev) {
-                console.log("artistList.onchange", ev.target.value, ev.target, ev.currentTarget, ev);
+                console.log("artists.onchange", ev.target.value, ev.target, ev.currentTarget, ev);
+                const id = ev.target.value;
+                const artist = this.artists.find(x => x.id === id);
+                if (!artist) {
+                    return;
+                }
+                this.albums.splice(0, this.albums.length, ...artist.albums)
+                this.songs.splice(0, this.songs.length);
+            }
+
+            albumChanged(ev) {
+                console.log("albums.onchange", ev.target.value, ev.target, ev.currentTarget, ev);
+                const id = ev.target.value;
+                const album = this.albums.find(x => x.id === id);
+                if (!album) {
+                    this.songs.splice(0, this.songs.length);
+                    return;
+                }
+                this.songs.splice(0, this.songs.length, ...album.songs);
+            }
+
+            songChanged(ev) {
+                console.log("songs.onchange", ev.target.value, ev.target, ev.currentTarget, ev);
             }
 
             async selectDir(ev) {

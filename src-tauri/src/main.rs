@@ -11,6 +11,8 @@ use tauri::Manager;
 lazy_static! {
     static ref RE_EXTRACT_ARTIST: Regex =
         Regex::new(r"^([^(]+)\s+-\s+\(\s*(?:[\d]+\s*-\s*)?([\d]+)\s*\)\s+-\s+(.+)$").unwrap();
+    static ref RE_EXTRACT_SONG: Regex =
+        Regex::new(r"(\d{2})(?:\.?\s*-)?\s*(.+)\.([^\.\s]+)$").unwrap();
 }
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -32,9 +34,19 @@ struct Album {
     name: String,
     path: String,
     year: Option<i32>,
+    songs: Vec<Song>,
 }
 
-fn make_id(s: &str) -> String {
+#[derive(serde::Serialize)]
+struct Song {
+    id: String,
+    name: Option<String>,
+    ext: Option<String>,
+    track: i32,
+    path: String,
+}
+
+fn _make_id(s: &str) -> String {
     s.chars().map(|it| match it {
         ' ' => '_',
         '/' => '_',
@@ -47,7 +59,7 @@ fn make_id(s: &str) -> String {
 fn from_pathbuf(pathbuf: &PathBuf) -> (Artist, Album) {
     let full_path = pathbuf.as_path();
     let file_name = full_path.file_name().unwrap().to_str().unwrap();
-    let album_id = make_id(file_name);
+    let album_id = full_path.to_str().unwrap();
 
     let mut artist_name = file_name;
     let mut album_name = file_name;
@@ -63,18 +75,58 @@ fn from_pathbuf(pathbuf: &PathBuf) -> (Artist, Album) {
         break;
     }
 
+    let songs: Vec<Song> = match fs::read_dir(pathbuf) {
+        Err(_) => vec![],
+        Ok(entry) => entry.into_iter()
+            .filter(|it| it.is_ok())
+            .map(|it| it.unwrap().path())
+            .filter(|it| it.is_file())
+            .map(|it| song_from_pathbuf(&it))
+            .collect(),
+    };
+
     ( Artist {
-        id: String::from(make_id(artist_name)),
+        id: String::from(artist_name),
         name: String::from(artist_name),
         albums: vec![],
       }
     , Album {
-        id: album_id,
+        id: String::from(album_id),
         name: String::from(album_name),
         path: String::from(full_path.to_str().unwrap()),
         year: album_year,
+        songs,
       }
     )
+}
+
+fn song_from_pathbuf(pb: &PathBuf) -> Song {
+    let full_path = pb.to_str().unwrap().to_string();
+    let file_name = pb.as_path().file_name().unwrap().to_str().unwrap();
+
+    let mut track = 0;
+    let mut name = Some(full_path.clone());
+    let mut ext: Option<String> = None;
+
+    for (_, [t, n, e]) in RE_EXTRACT_SONG
+        .captures_iter(file_name)
+        .map(|c| c.extract()) {
+        track = match t.parse() {
+            Err(_) => 0,
+            Ok(t) => t,
+        };
+        name = Some(n.to_string());
+        ext = Some(e.to_string());
+        break;
+    }
+
+    Song {
+        id: full_path.clone(),
+        name,
+        ext,
+        track,
+        path: full_path.clone(),
+    }
 }
 
 

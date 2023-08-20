@@ -20,6 +20,15 @@ export const schema = `#graphql
         name: String
         path: String!
         year: Int
+        songs: [Song!]
+    }
+
+    type Song {
+        id: ID!
+        name: String
+        track: Int
+        path: String!
+        ext: String
     }
 
     ## Pagination

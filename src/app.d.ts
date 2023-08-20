@@ -20,6 +20,14 @@ declare interface Album {
     name?: string,
     path: string,
     year?: number,
+    songs?: Song[],
+}
+
+declare interface Song {
+    id: string,
+    name?: string,
+    path: string,
+    track?: number,
 }
 
 declare interface EnvFacade {
